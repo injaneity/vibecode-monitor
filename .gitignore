@@ -1,0 +1,13 @@
+# Environment files (contain secrets)
+.env
+
+# Build output
+vibecode-monitor
+
+# OS files
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.swp
