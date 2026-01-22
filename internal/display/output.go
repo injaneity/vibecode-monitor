@@ -5,14 +5,15 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/injaneity/vibecode-monitor/internal/claude"
-	"github.com/injaneity/vibecode-monitor/internal/figlet"
+	"github.com/injaneity/vibe-monitor/internal/claude"
+	"github.com/injaneity/vibe-monitor/internal/figlet"
 )
 
 // Output combines all display components into final terminal output.
 type Output struct {
 	NoColor bool
 	Width   int
+	Offset  int // Left padding for logo alignment
 }
 
 // NewOutput creates a new output renderer.
@@ -26,22 +27,36 @@ func NewOutput(noColor bool, width int) *Output {
 	}
 }
 
+// SetOffset sets the left padding offset for logo alignment.
+func (o *Output) SetOffset(offset int) {
+	o.Offset = offset
+}
+
 // Render produces the complete display output for Claude Code usage.
 func (o *Output) Render(usage *claude.UsageData) string {
 	var sb strings.Builder
 
 	// 1. Figlet ASCII art header
 	header := o.renderHeader("Claude Code")
+	if o.Offset > 0 {
+		header = o.addOffset(header)
+	}
 	sb.WriteString(header)
 	sb.WriteString("\n\n")
 
 	// 2. Model-specific usage stats
 	stats := o.renderModelStats(usage)
+	if o.Offset > 0 {
+		stats = o.addOffset(stats)
+	}
 	sb.WriteString(stats)
 	sb.WriteString("\n\n")
 
 	// 3. Progress bar
 	bar := o.renderProgressBar(usage)
+	if o.Offset > 0 {
+		bar = o.addOffset(bar)
+	}
 	sb.WriteString(bar)
 	sb.WriteString("\n")
 
@@ -123,4 +138,17 @@ func (o *Output) RenderCompact(usage *claude.UsageData) string {
 		return line
 	}
 	return Colorize(line, GetUsageColor(percentage))
+}
+
+// addOffset adds left padding to multi-line text.
+func (o *Output) addOffset(text string) string {
+	if o.Offset <= 0 {
+		return text
+	}
+	padding := strings.Repeat(" ", o.Offset)
+	lines := strings.Split(text, "\n")
+	for i, line := range lines {
+		lines[i] = padding + line
+	}
+	return strings.Join(lines, "\n")
 }
